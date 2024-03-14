@@ -4,7 +4,7 @@ namespace SimpleGOAP.Tests.Data.RiverCrossing
 {
     public class RiverCrossingStateComparer : IEqualityComparer<RiverCrossingState>
     {
-        public bool Equals(RiverCrossingState x, RiverCrossingState y)
+        public bool Equals(RiverCrossingState? x, RiverCrossingState? y)
         {
             if (ReferenceEquals(x, y)) return true;
             if (ReferenceEquals(x, null)) return false;

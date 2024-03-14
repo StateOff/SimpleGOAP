@@ -4,7 +4,7 @@ namespace SimpleGOAP.Tests.Data.ReadmeExample
 {
     public class PotatoStateEqualityComparer : IEqualityComparer<PotatoState>
     {
-        public bool Equals(PotatoState x, PotatoState y)
+        public bool Equals(PotatoState? x, PotatoState? y)
         {
             if (ReferenceEquals(x, y)) return true;
             if (ReferenceEquals(x, null)) return false;

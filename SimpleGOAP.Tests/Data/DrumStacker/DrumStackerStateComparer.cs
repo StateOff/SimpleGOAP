@@ -4,7 +4,7 @@ namespace SimpleGOAP.Tests.Data.DrumStacker
 {
     public class DrumStackerStateComparer : IEqualityComparer<DrumStackerState>
     {
-        public bool Equals(DrumStackerState x, DrumStackerState y)
+        public bool Equals(DrumStackerState? x, DrumStackerState? y)
         {
             if (ReferenceEquals(x, y)) return true;
             if (ReferenceEquals(x, null)) return false;
