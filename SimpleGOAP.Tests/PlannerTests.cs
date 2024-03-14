@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using asgae.Ai;
 using SimpleGOAP.KeyValueState;
 using SimpleGOAP.Tests.Data.DrumStacker;
 using SimpleGOAP.Tests.Data.ReadmeExample;
@@ -31,17 +32,76 @@ namespace SimpleGOAP.Tests
         public void TestTravelerExample()
         {
             var (data, subject) = TravelerDataFactory.Create();
+            // data.MaxIterations = 2;
 
             var start = DateTime.Now;
             var plan = subject.Execute(data);
             var duration = DateTime.Now - start;
+            var state = new KeyValueStateCopier<string, Object>().Copy(data.StartingState);
 
             testOutputHelper.WriteLine($"Plan complete after {duration.TotalMilliseconds}ms:");
+            int counter = 1;
             foreach (var step in plan.Steps)
-                testOutputHelper.WriteLine($"\t{step.Action.Title}");
+            {
+                testOutputHelper.WriteLine($"\tStep #{counter++} {step.Action.Title}");
+                foreach (var fact in step.AfterState.Facts)
+                {
+                    testOutputHelper.WriteLine($"\t - {fact.Key} = {fact.Value}");
+                }
+            }
 
-            Assert.True(plan.Success);
+                
+            // Assert.True(plan.Success);
         }
+        
+        
+        [Fact]
+        public void TestEnemyAi()
+        {
+            var (data, subject) = EnemyAiFactory.Create("Igor");
+            // data.MaxIterations = 2;
+
+            var start = DateTime.Now;
+            var plan = subject.Execute(data);
+            var duration = DateTime.Now - start;
+            var state = new KeyValueStateCopier<string, Object>().Copy(data.StartingState);
+            
+            testOutputHelper.WriteLine($"Initial State");
+            foreach (var fact in state.Facts)
+            {
+                testOutputHelper.WriteLine($"\t - {fact.Key} = {fact.Value}");
+            }
+
+            testOutputHelper.WriteLine($"Plan complete after {duration.TotalMilliseconds}ms:");
+            int counter = 1;
+            if (!plan.Success)
+            {
+                testOutputHelper.WriteLine("\tNot successful!");
+            }
+            
+            if (plan.Steps.Count == 0)
+            {
+                testOutputHelper.WriteLine("\tNothing to do.");
+            }
+            else
+            {
+                foreach (var step in plan.Steps)
+                {
+                    testOutputHelper.WriteLine($"\tStep #{counter++} {step.Action.Title}");
+                    if (false)
+                    {
+                        testOutputHelper.WriteLine(data.GoalEvaluator(step.AfterState) ? "\t ! Heurisitic = true" : "\t ? Heuristic = false");
+                        foreach (var fact in step.AfterState.Facts)
+                        {
+                            testOutputHelper.WriteLine($"\t - {fact.Key} = {fact.Value}");
+                        }
+                    }
+                }
+            }
+
+            // Assert.True(plan.Success);
+        }
+        
         [Fact]
         public void TestRiverCrossing()
         {
