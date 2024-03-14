@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Priority_Queue;
 
@@ -50,14 +51,16 @@ namespace SimpleGOAP
             };
 
             var iterations = 0;
+            StateNode<T> current = null;
             while (openSet.Any() && ++iterations < @params.MaxIterations)
             {
-                var current = openSet.Dequeue();
+                current = openSet.Dequeue();
                 if (evalGoal(current.ResultingState))
                     return ReconstructPath(current, @params.StartingState);
 
                 foreach (var neighbor in GetNeighbors(current, @params.GetActions(current.ResultingState)))
                 {
+                    Debug.WriteLine($"Testing Action {neighbor.SourceAction.Title}");
                     var distScore = distanceScores[current.ResultingState] + neighbor.GetActionCost(current.ResultingState);
                     if (distScore >= distanceScores[neighbor.ResultingState])
                         continue;
@@ -70,6 +73,11 @@ namespace SimpleGOAP
                     if (!openSet.Contains(neighbor))
                         openSet.Enqueue(neighbor, finalScore);
                 }
+            }
+
+            if (current != null)
+            {
+                return ReconstructPath(current, @params.StartingState, false);
             }
 
             return new Plan<T>
@@ -86,7 +94,7 @@ namespace SimpleGOAP
             return new SimplePriorityQueue<StateNode<T>>();
         }
 
-        private static Plan<T> ReconstructPath(StateNode<T> final, T startingState)
+        private static Plan<T> ReconstructPath(StateNode<T> final, T startingState, bool success=true)
         {
             var current = final;
             var path = new List<StateNode<T>>();
@@ -99,7 +107,7 @@ namespace SimpleGOAP
             path.Reverse();
             return new Plan<T>
             {
-                Success = true,
+                Success = success,
                 Steps = path.Select((step, i) => new PlanStep<T>
                 {
                     Index = i,
