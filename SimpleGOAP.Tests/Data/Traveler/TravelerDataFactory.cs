@@ -16,21 +16,17 @@ namespace SimpleGOAP.Tests.Data.Traveler
             const int GAS_TANK_CAPACITY = 40;
             const int WAGE = 20;
 
-            var currentState = new KeyValueState<string, object>();
-            foreach (var (key, val) in new (string, object)[]
-                     {
-                         ("myLocation", "Home"),
-                         ("food", 0),
-                         ("full", false),
-                         ("money", 0),
-                         ("gas", 40),
-                         ("fun", 0),
-                         ("fatigue", 0),
-                         ("toy", 0),
-                     })
+            var currentState = new KeyValueState<string, object>()
             {
-                currentState.Set(new Fact<string, object>(key, val));
-            }
+                {"myLocation", "Home"},
+                {"food", 0},
+                {"full", false},
+                {"money", 0},
+                {"gas", 40},
+                {"fun", 0},
+                {"fatigue", 0},
+                {"toy", 0},
+            };
 
 
             var locations = new List<(string, int, int)>
