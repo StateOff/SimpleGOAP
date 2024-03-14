@@ -1,12 +1,19 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace SimpleGOAP.KeyValueState
 {
-    public class KeyValueState<TKey, TVal>
+    public class KeyValueState<TKey, TVal> : IEnumerable<TKey>
     {
         public List<Fact<TKey, TVal>> Facts { get; } = new List<Fact<TKey, TVal>>();
         private readonly Dictionary<TKey, int> indices = new Dictionary<TKey, int>();
+        
+        public TVal this[TKey key]
+        {
+            get { return Get<TVal>(key); }
+            set { Set(key, value); }
+        }
 
         public void Set(TKey key, TVal val)
         {
@@ -23,6 +30,8 @@ namespace SimpleGOAP.KeyValueState
             Set(key, setter((T) Facts[indices[key]].Value));
 
         public void Set(Fact<TKey, TVal> fact) => Set(fact.Key, fact.Value);
+        
+        public void Add(TKey key, TVal value) => Set(key, value);
 
         public T2 Get<T2>(TKey key) where T2 : TVal
         {
@@ -36,5 +45,15 @@ namespace SimpleGOAP.KeyValueState
 
         public bool Check(Fact<TKey, TVal> fact) => Check(fact.Key, fact.Value);
         public bool Check(TKey key, TVal val) => indices.TryGetValue(key, out var idx) && Facts[idx].Value.Equals(val);
+
+        public IEnumerator<TKey> GetEnumerator()
+        {
+            return indices.Keys.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return indices.Keys.GetEnumerator();
+        }
     }
 }
