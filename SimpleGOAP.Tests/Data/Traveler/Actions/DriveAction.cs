@@ -19,6 +19,11 @@ namespace SimpleGOAP.Tests.Data.Traveler.Actions
 
         public string Title => $"Drive to {location}";
         public int GetCost(KeyValueState<string, object> state) => 10;
+        
+        public bool PreconditionMet(KeyValueState<string, object> state)
+        {
+            return state.Get<int>("gas") >= GasSpentForDistance(state);
+        }
 
         private int GasSpentForDistance(KeyValueState<string, object> state)
         {
@@ -27,11 +32,6 @@ namespace SimpleGOAP.Tests.Data.Traveler.Actions
             var (_, targetX, targetY) = locations.First(l => l.Item1 == location);
             var distance = Math.Sqrt(Math.Pow(targetX - currentX, 2) + Math.Pow(targetY - currentY, 2));
             return Convert.ToInt32(distance * GasPerDistance);
-        }
-
-        public bool IsLegalForState(KeyValueState<string, object> state)
-        {
-            return state.Get<int>("gas") >= GasSpentForDistance(state);
         }
 
         public KeyValueState<string, object> TakeActionOnState(KeyValueState<string, object> state)

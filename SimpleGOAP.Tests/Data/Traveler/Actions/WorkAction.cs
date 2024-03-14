@@ -16,7 +16,7 @@ namespace SimpleGOAP.Tests.Data.Traveler.Actions
         public string Title => $"Earn ${amountEarned} at {workLocation}";
         public int GetCost(KeyValueState<string, object> state) => 10;
 
-        public bool IsLegalForState(KeyValueState<string, object> state)
+        public bool PreconditionMet(KeyValueState<string, object> state)
         {
             return state.Check("myLocation", workLocation) && state.Get<int>("fatigue") < 3;
         }
