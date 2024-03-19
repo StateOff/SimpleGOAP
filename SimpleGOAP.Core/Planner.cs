@@ -77,13 +77,14 @@ namespace SimpleGOAP
 
             if (current != null)
             {
-                return ReconstructPath(current, @params.StartingState, false);
+                return ReconstructPath(current, @params.StartingState, iterations, false);
             }
 
             return new Plan<T>
             {
                 Success = false,
-                Steps = new List<PlanStep<T>>()
+                Steps = new List<PlanStep<T>>(),
+                Iterations = iterations
             };
         }
 
@@ -94,7 +95,7 @@ namespace SimpleGOAP
             return new SimplePriorityQueue<StateNode<T>>();
         }
 
-        private static Plan<T> ReconstructPath(StateNode<T> final, T startingState, bool success=true)
+        private static Plan<T> ReconstructPath(StateNode<T> final, T startingState, int iterations, bool success=true)
         {
             var current = final;
             var path = new List<StateNode<T>>();
@@ -114,7 +115,8 @@ namespace SimpleGOAP
                     Action = step.SourceAction,
                     AfterState = step.ResultingState,
                     BeforeState = step.Parent == null ? startingState : step.Parent.ResultingState
-                }).ToList()
+                }).ToList(),
+                Iterations = iterations
             };
         }
 

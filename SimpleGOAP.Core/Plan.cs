@@ -12,5 +12,8 @@ namespace SimpleGOAP
         /// <summary>The steps to take to get from current state to goal state. Will be empty if the search
         /// failed.</summary>
         public List<PlanStep<T>> Steps { get; set; }
+        
+        /// <summary>How many iterations it took to come to this plan.</summary>
+        public int Iterations { get; set; }
     }
 }
