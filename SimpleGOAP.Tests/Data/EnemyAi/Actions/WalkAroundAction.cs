@@ -14,20 +14,21 @@ public class WalkAroundAction : OwnerActionBase, IAction<OwnerKeyValueState> {
 
     public int GetCost(OwnerKeyValueState state)
     {
-        return 2;
+        return 1;
     }
 
     public bool PreconditionMet(OwnerKeyValueState state)
     {
         return state.GetByOwner<float>(EnemyAiFactory.KeyBoredom, Owner) > 0.4f &&
-               // Safe
-               state.GetByOwner<bool>(EnemyAiFactory.KeyIsThreatened, Owner) == false &&
-               state.GetByOwner<float>(EnemyAiFactory.KeyAttention, Owner) <= EnemyAiFactory.AttentionState.AtEaseF;
+               
+               StateIsOnLocation(state) &&
+               StateIsSafe(state);
     }
 
     public OwnerKeyValueState TakeActionOnState(OwnerKeyValueState state)
     {
         state.SetByOwner(EnemyAiFactory.KeyBoredom, Owner, MathF.Max(0.0f, state.GetByOwner<float>(EnemyAiFactory.KeyBoredom, Owner) - 0.2f));
+        state.SetByOwner(EnemyAiFactory.KeyHunger, Owner, MathF.Max(0.0f, state.GetByOwner<float>(EnemyAiFactory.KeyHunger, Owner) + 0.1f));
         return state;
     }
 

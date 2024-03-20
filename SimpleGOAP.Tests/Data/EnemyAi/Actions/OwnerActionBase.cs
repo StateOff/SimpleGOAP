@@ -11,4 +11,15 @@ public class OwnerActionBase {
     {
         Owner = owner;
     }
+
+    protected bool StateIsSafe(OwnerKeyValueState state)
+    {
+        return state.GetByOwner<bool>(EnemyAiFactory.KeyIsThreatened, Owner) == false &&
+               state.GetByOwner<float>(EnemyAiFactory.KeyAttention, Owner) <= EnemyAiFactory.AttentionState.AtEaseF;
+    }
+    
+    protected bool StateIsOnLocation(OwnerKeyValueState state, int location = 0)
+    {
+        return state.GetByOwner<int>(EnemyAiFactory.Location, Owner) == location;
+    }
 }

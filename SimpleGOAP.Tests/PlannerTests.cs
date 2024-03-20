@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
 using asgae.Ai;
+using asgae.Ai.Actions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using SimpleGOAP.KeyValueState;
 using SimpleGOAP.Tests.Data.DrumStacker;
 using SimpleGOAP.Tests.Data.ReadmeExample;
@@ -79,22 +82,61 @@ namespace SimpleGOAP.Tests
 
             public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default;
         }
+        
+        [Fact]
+        public void TestEnemyAi()
+        {
+            var name = "Igor";
+            var logger = new TestOutputLogger<EnemyAiFactory.OwnerKeyValuePlanner>(testOutputHelper);
+            var (data, subject) = EnemyAiFactory.Create(name, logger);
+
+            testOutputHelper.WriteLine($"Initial State:\n{data.StartingState}");
+            var state = data.StartingState;
+            Plan<OwnerKeyValueState> plan = null;
+            
+            for (int i = 0; i < 900; i++)
             {
-                foreach (var step in plan.Steps)
+                testOutputHelper.WriteLine($"------------------------- {i+1} -----------------------");
+                var start = DateTime.Now;
+                plan = subject.Execute(data);
+                var duration = DateTime.Now - start;
+
+                var planStatusText = plan.Success ? "Successful" : "Failed";
+                testOutputHelper.WriteLine($"{planStatusText} Planning after {duration.TotalMilliseconds}ms (in {plan.Iterations} iterations):");
+                int counter = 1;
+                if (!plan.Success)
                 {
-                    testOutputHelper.WriteLine($"\tStep #{counter++} {step.Action.Title}");
-                    if (false)
+                    testOutputHelper.WriteLine("\tNot successful!");
+                    break;
+                }
+
+                if (plan.Steps.Count == 0)
+                {
+                    var action = new IdleAction(name);
+                    if (action.PreconditionMet(data.StartingState))
                     {
-                        testOutputHelper.WriteLine(data.GoalEvaluator(step.AfterState) ? "\t ! Heurisitic = true" : "\t ? Heuristic = false");
-                        foreach (var fact in step.AfterState.Facts)
-                        {
-                            testOutputHelper.WriteLine($"\t - {fact.Key} = {fact.Value}");
-                        }
+                        testOutputHelper.WriteLine("\tNothing to do... Idle");
+                        action.TakeActionOnState(data.StartingState);
+                    } else
+                    {
+                        testOutputHelper.WriteLine("\tNothing to do... No actions left");
+                        break;
                     }
                 }
-            }
+                else
+                {
+                    foreach (var step in plan.Steps)
+                    {
+                        testOutputHelper.WriteLine($"\tStep #{counter++} {step.Action.Title}");
+                    }
 
-            // Assert.True(plan.Success);
+                    data.StartingState = plan.Steps.Last().AfterState;
+                }
+                state = data.StartingState;
+            }
+            testOutputHelper.WriteLine($"Output State:\n{state}");
+
+            Assert.True(plan != null && plan.Success);
         }
         
         [Fact]

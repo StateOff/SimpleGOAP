@@ -1,4 +1,5 @@
 using System.Data.SqlTypes;
+using System.Text;
 using asgae.Ai.Actions;
 using SimpleGOAP.KeyValueState;
 
@@ -19,5 +20,16 @@ public class OwnerKeyValueState : KeyValueState<string, object>
         public void SetByOwner(string key, string owner, object value)
         {
             Set(OwnerStateKey(key, owner), value);
+        }
+
+        public override string ToString()
+        {
+            var builder = new StringBuilder();
+            foreach(var key in this)
+            {
+                builder.Append($"{key} = {this[key]}\n");
+            }
+
+            return builder.ToString();
         }
 }

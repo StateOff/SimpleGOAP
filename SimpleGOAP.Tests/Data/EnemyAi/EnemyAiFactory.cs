@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using asgae.Ai.Actions;
+using Microsoft.Extensions.Logging;
 using SimpleGOAP;
 using SimpleGOAP.KeyValueState;
 using SimpleGOAP.Tests.Data.Traveler.Actions;
@@ -24,7 +25,7 @@ namespace asgae.Ai
         
         public class OwnerKeyValuePlanner : Planner<OwnerKeyValueState>
         {
-            public OwnerKeyValuePlanner() : base(new OwnerKeyValueStateCopier(), new KeyValueStateComparer<string, object>())
+            public OwnerKeyValuePlanner(ILogger<OwnerKeyValuePlanner> logger) : base(new OwnerKeyValueStateCopier(), new KeyValueStateComparer<string, object>(), logger)
             {
             }
         }
@@ -85,8 +86,10 @@ namespace asgae.Ai
         public const string KeyMoney = "money";
         public const string KeyIsSmoker = "is_smoker";
         public const string KeyCigarettes = "cigarettes";
+        public const string KeyFood = "food";
+        public const string Location = "location";
         
-        public static (PlanParameters<OwnerKeyValueState>, Planner<OwnerKeyValueState>) Create(string name)
+        public static (PlanParameters<OwnerKeyValueState>, OwnerKeyValuePlanner) Create(string name, ILogger<OwnerKeyValuePlanner> logger)
         {
             const float BOREDOM_RATE_PER_HOUR = 0.1f;
             const float BOREDOM_RATE_PER_HOUR_THREATENED = 0.0f;
@@ -104,34 +107,35 @@ namespace asgae.Ai
             string moneyOwnerKey = OwnerKeyValueState.OwnerStateKey(KeyMoney, name);
             string isSmokerOwnerKey = OwnerKeyValueState.OwnerStateKey(KeyIsSmoker, name);
             string cigarettesOwnerKey = OwnerKeyValueState.OwnerStateKey(KeyCigarettes, name);
+            string foodOwnerKey = OwnerKeyValueState.OwnerStateKey(KeyFood, name);
+            string locationOwnerKey = OwnerKeyValueState.OwnerStateKey(Location, name);
+            
+            string cigarettesCarKey = OwnerKeyValueState.OwnerStateKey(KeyCigarettes, "car");
 
             var currentState = new OwnerKeyValueState()
             {
-                // -- Shared Globals
-                // -- Locals
                 {healthOwnerKey,  100},
                 {fatigueOwnerKey,  0.25f},
                 {boredomOwnerKey,  0.3f},
-                {hungerOwnerKey,  0.5f},
+                {hungerOwnerKey,  0.3f},
                 {attentionOwnerKey,  AttentionState.AtEaseF},
                 {isThreatenedOwnerKey,  false},
                 {moneyOwnerKey,  20},
                 {isSmokerOwnerKey,  true},
                 {cigarettesOwnerKey, 7},
-                // {$"state.focus@{name}", null},
+                {cigarettesCarKey, 8},
+                {foodOwnerKey,  1},
+                {locationOwnerKey,  0},
             };
 
-            // var locations = new List<(string, int, int)>
-            // {
-            //     ("Restaurant", 2, 2),
-            //     ("Work", 1, 0),
-            //     ("Gas Station", 1, 1),
-            //     ("Home", 0, 0),
-            //     ("Theater", 2, 0),
-            // };
-            
             IEnumerable<IAction<OwnerKeyValueState>> GetActions(OwnerKeyValueState state)
             {
+                {
+                    var eatFoodAction = new EatFoodAction(name);
+                    if (eatFoodAction.PreconditionMet(state))
+                        yield return eatFoodAction;
+                }
+                
                 {
                     var smokeAction = new SmokeAction(name);
                     if (smokeAction.PreconditionMet(state))
@@ -143,34 +147,73 @@ namespace asgae.Ai
                     if (walkAroundAction.PreconditionMet(state))
                         yield return walkAroundAction;
                 }
+                
+                {
+                    var gotoCarAction = new GotoAction(name, new []{0}, 1);
+                    if (gotoCarAction.PreconditionMet(state))
+                        yield return gotoCarAction;
+                }
+                
+                {
+                    var goOutOfCarAction = new GotoAction(name, new []{1}, 0);
+                    if (goOutOfCarAction.PreconditionMet(state))
+                        yield return goOutOfCarAction;
+                }
+                
+                {
+                    var getCigarettesFromCar = new SwapStateAtLocationAction<int>("car", name, KeyCigarettes, 8, true, new []{1});
+                    if (getCigarettesFromCar.PreconditionMet(state))
+                        yield return getCigarettesFromCar;
+                }
+                
+                {
+                    var driveAwayAction = new DriveAwayAction(name);
+                    if (driveAwayAction.PreconditionMet(state))
+                        yield return driveAwayAction;
+                }
+                
+                {
+                    var driveAwayAction = new DriveAwayAction(name);
+                    if (driveAwayAction.PreconditionMet(state))
+                        yield return driveAwayAction;
+                }
 
-                var idleAction = new IdleAction(name);
-                yield return idleAction;
+                {
+                    var idleAction = new IdleAction(name);
+                    if (idleAction.PreconditionMet(state))
+                        yield return idleAction;
+                }
             }
 
             int HeuristicCost(OwnerKeyValueState state) =>
                 new[]
                 {
-                    // 0 -> 30, 60 -> 0
-                    10 * (3 - Math.Min(3, state.Get<int>(healthOwnerKey) / 20)),
-                    state.Check(isThreatenedOwnerKey, false) ? 0 : 10,
+                    50 * (3 - Math.Min(3, state.Get<int>(healthOwnerKey) / 20)),
+                    state.Check(isThreatenedOwnerKey, false) ? 0 : 50,
                     
-                    // state.Get<int>(moneyOwnerKey) * 5 >,
-                    (int)MathF.Ceiling(state.Get<float>(hungerOwnerKey) * 1.0f - 0.0f),
+                    10 * (int)MathF.Ceiling(state.Get<float>(hungerOwnerKey) * 1.0f - 0.0f),
                     (int)MathF.Ceiling(state.Get<float>(boredomOwnerKey) * 1.0f - 0.2f),
                     
                 }.Sum();
+            
+            bool OkGoal(OwnerKeyValueState state)
+            {
+                return
+                    state.Get<float>(fatigueOwnerKey) <= 0.31f &&
+                    state.Get<float>(boredomOwnerKey) <= 0.21f &&
+                    state.Get<float>(hungerOwnerKey) <= 0.21f;
+            }
 
             var args = new PlanParameters<OwnerKeyValueState>
             {
                 GetActions = GetActions,
                 StartingState = currentState,
                 HeuristicCost = HeuristicCost,
-                MaxIterations = 5000,
-                GoalEvaluator = s => HeuristicCost(s) <= 0,
+                MaxIterations = 1000,
+                GoalEvaluator = OkGoal,
             };
 
-            return (args, new OwnerKeyValuePlanner());
+            return (args, new OwnerKeyValuePlanner(logger));
         }
     }
 }
