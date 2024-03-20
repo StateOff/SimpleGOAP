@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace SimpleGOAP.Tests.Data.DrumStacker
 {
     public static class DrumStackerPlannerFactory
     {
-        public static (PlanParameters<DrumStackerState>, Planner<DrumStackerState>) Create()
+        public static (PlanParameters<DrumStackerState>, Planner<DrumStackerState>) Create(ILogger<Planner<DrumStackerState>> logger=null)
         {
             var allSizes = (DrumSize[]) Enum.GetValues(typeof(DrumSize));
 
@@ -123,7 +124,8 @@ namespace SimpleGOAP.Tests.Data.DrumStacker
 
             var planner = new Planner<DrumStackerState>(
                 new DrumStackerStateCopier(),
-                new DrumStackerStateComparer()
+                new DrumStackerStateComparer(),
+                logger
             );
 
             return (data, planner);

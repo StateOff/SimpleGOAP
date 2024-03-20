@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Priority_Queue;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SimpleGOAP
 {
@@ -12,9 +13,15 @@ namespace SimpleGOAP
     {
         private readonly IStateCopier<T> stateCopier;
         private readonly IEqualityComparer<T> stateComparer;
+        private readonly ILogger<Planner<T>> logger;
 
-        public Planner(IStateCopier<T> stateCopier, IEqualityComparer<T> stateComparer)
+        public Planner(IStateCopier<T> stateCopier, IEqualityComparer<T> stateComparer, ILogger<Planner<T>> logger=null)
         {
+            if (logger == null)
+            {
+                logger = new NullLogger<Planner<T>>();
+            }
+            this.logger = logger;
             this.stateCopier = stateCopier;
             this.stateComparer = stateComparer;
         }
@@ -54,24 +61,40 @@ namespace SimpleGOAP
             StateNode<T> current = null;
             while (openSet.Any() && ++iterations < @params.MaxIterations)
             {
+                logger.LogTrace($"Itertion {iterations} with {openSet.Count} in Set");
                 current = openSet.Dequeue();
+                logger.LogDebug($"{current.ResultingState.ToString()}");
                 if (evalGoal(current.ResultingState))
-                    return ReconstructPath(current, @params.StartingState);
+                    return ReconstructPath(current, @params.StartingState, iterations);
 
                 foreach (var neighbor in GetNeighbors(current, @params.GetActions(current.ResultingState)))
                 {
-                    Debug.WriteLine($"Testing Action {neighbor.SourceAction.Title}");
+                    logger.LogTrace($"[???] Testing Action {neighbor.SourceAction.Title}");
                     var distScore = distanceScores[current.ResultingState] + neighbor.GetActionCost(current.ResultingState);
                     if (distScore >= distanceScores[neighbor.ResultingState])
+                    {
+                        logger.LogDebug($"[...] Skipping due to action cost: {neighbor.SourceAction.Title}");
                         continue;
+                    }
 
                     distanceScores[neighbor.ResultingState] = distScore;
                     var hCost = heuristicCost(neighbor.ResultingState);
-                    if(hCost > maxHScore)
+                    if (hCost > maxHScore)
+                    {
+                        logger.LogDebug($"[...] Skipping due to heuristic cost: {neighbor.SourceAction.Title}");
                         continue;
-                    var finalScore = distScore + hCost;
+                    }
+
                     if (!openSet.Contains(neighbor))
+                    {
+                        var finalScore = distScore + hCost;
+                        logger.LogDebug($"[+++] Enqueuing action '{neighbor.SourceAction.Title}' with finalScore {finalScore} ({distScore} + {hCost})");
                         openSet.Enqueue(neighbor, finalScore);
+                    }
+                    else
+                    {
+                        logger.LogDebug($"[...] Skipping due to duplicate");
+                    }
                 }
             }
 

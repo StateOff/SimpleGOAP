@@ -53,37 +53,32 @@ namespace SimpleGOAP.Tests
                 
             // Assert.True(plan.Success);
         }
-        
-        
-        [Fact]
-        public void TestEnemyAi()
+
+        public class TestOutputLogger<T> : ILogger<T>
         {
-            var (data, subject) = EnemyAiFactory.Create("Igor");
-            // data.MaxIterations = 2;
+            private readonly ITestOutputHelper testOutputHelper;
 
-            var start = DateTime.Now;
-            var plan = subject.Execute(data);
-            var duration = DateTime.Now - start;
-            var state = new KeyValueStateCopier<string, Object>().Copy(data.StartingState);
-            
-            testOutputHelper.WriteLine($"Initial State");
-            foreach (var fact in state.Facts)
+            public TestOutputLogger(ITestOutputHelper testOutputHelper)
             {
-                testOutputHelper.WriteLine($"\t - {fact.Key} = {fact.Value}");
+                this.testOutputHelper = testOutputHelper;
             }
 
-            testOutputHelper.WriteLine($"Plan complete after {duration.TotalMilliseconds}ms:");
-            int counter = 1;
-            if (!plan.Success)
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
             {
-                testOutputHelper.WriteLine("\tNot successful!");
+                if (!IsEnabled(logLevel))
+                {
+                    return;
+                }
+                testOutputHelper.WriteLine(formatter(state, exception));
             }
-            
-            if (plan.Steps.Count == 0)
+
+            public bool IsEnabled(LogLevel logLevel)
             {
-                testOutputHelper.WriteLine("\tNothing to do.");
+                return false;
             }
-            else
+
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default;
+        }
             {
                 foreach (var step in plan.Steps)
                 {
