@@ -17,7 +17,7 @@ namespace SimpleGOAP
         public Func<T, int> HeuristicCost { get; set; }
 
         /// <summary> A function that should return true if for a given state T we have reached our goal. </summary>
-        public Func<T, bool> GoalEvaluator { get; set; }
+        public List<Func<T, bool>> GoalsEvaluator { get; set; }
 
         /// <summary> A list of actions that can be taken to achieve the goal.</summary>
         public Func<T, IEnumerable<IAction<T>>> GetActions { get; set; }

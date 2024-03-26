@@ -68,6 +68,11 @@ namespace SimpleGOAP
             this.precondition = precondition;
         }
 
+        public override string ToString()
+        {
+            return Title;
+        }
+
         public string Title { get; }
 
         public int GetCost(T state) => getCost();

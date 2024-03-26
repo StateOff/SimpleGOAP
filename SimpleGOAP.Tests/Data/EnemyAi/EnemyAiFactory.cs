@@ -210,7 +210,7 @@ namespace asgae.Ai
                 StartingState = currentState,
                 HeuristicCost = HeuristicCost,
                 MaxIterations = 1000,
-                GoalEvaluator = OkGoal,
+                GoalsEvaluator = new() { OkGoal },
             };
 
             return (args, new OwnerKeyValuePlanner(logger));

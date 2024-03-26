@@ -108,7 +108,7 @@ namespace SimpleGOAP.Tests.Data.Traveler
                 GetActions = GetActions,
                 StartingState = currentState,
                 HeuristicCost = HeuristicCost,
-                GoalEvaluator = s => HeuristicCost(s) <= 0,
+                GoalsEvaluator = new () { s => HeuristicCost(s) <= 0 },
             };
 
             return (args, new KeyValuePlanner(logger));

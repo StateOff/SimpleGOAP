@@ -54,7 +54,7 @@ namespace SimpleGOAP.Tests.Data.ReadmeExample
                 StartingState = new PotatoState(),
                 GetActions = GetActions,
                 HeuristicCost = heuristicCost,
-                GoalEvaluator = goalEvaluator
+                GoalsEvaluator = new () { goalEvaluator }
             };
             return (planParameters, planner);
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
@@ -91,7 +92,7 @@ namespace SimpleGOAP.Tests.Data.RiverCrossing
                 StartingState = new RiverCrossingState(),
                 MaxHeuristicCost = 50,
                 HeuristicCost = HeuristicCost,
-                GoalEvaluator = state => HeuristicCost(state) == 0,
+                GoalsEvaluator = new () {state => HeuristicCost(state) == 0},
                 GetActions = s =>
                 {
                     var actions = new List<IAction<RiverCrossingState>>();

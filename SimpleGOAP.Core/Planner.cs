@@ -29,8 +29,8 @@ namespace SimpleGOAP
         /// <summary>Execute the plan.</summary>
         public Plan<T> Execute(PlanParameters<T> @params)
         {
-            if (@params.GoalEvaluator == null)
-                throw new ArgumentOutOfRangeException(nameof(@params.GoalEvaluator));
+            if (@params.GoalsEvaluator == null)
+                throw new ArgumentOutOfRangeException(nameof(@params.GoalsEvaluator));
             if (@params.HeuristicCost == null)
                 throw new ArgumentOutOfRangeException(nameof(@params.HeuristicCost));
             if (@params.GetActions == null)
@@ -45,7 +45,7 @@ namespace SimpleGOAP
              *  f score: sum of (g, h), used as priority of the node
              */
             var heuristicCost = @params.HeuristicCost;
-            var evalGoal = @params.GoalEvaluator;
+            var evalGoals = @params.GoalsEvaluator;
             var maxHScore = @params.MaxHeuristicCost;
 
             var start = new StateNode<T>(@params.StartingState, null, null);
@@ -61,11 +61,23 @@ namespace SimpleGOAP
             StateNode<T> current = null;
             while (openSet.Any() && ++iterations < @params.MaxIterations)
             {
-                logger.LogTrace($"Itertion {iterations} with {openSet.Count} in Set");
                 current = openSet.Dequeue();
+                var sourceActionTitle = "(root)";
+                if (current.SourceAction != null)
+                {
+                    sourceActionTitle = current.SourceAction.Title;
+                }
+                logger.LogTrace($">>> Iteration {iterations} with {openSet.Count+1} in Set after {sourceActionTitle}");
                 logger.LogDebug($"{current.ResultingState.ToString()}");
-                if (evalGoal(current.ResultingState))
-                    return ReconstructPath(current, @params.StartingState, iterations);
+
+                int goalIndex = 0;
+                foreach(var evalGoal in evalGoals) {
+                    if (evalGoal(current.ResultingState))
+                    {
+                        return ReconstructPath(current, @params.StartingState, iterations, goalIndex);
+                    }
+                    goalIndex++;
+                }
 
                 foreach (var neighbor in GetNeighbors(current, @params.GetActions(current.ResultingState)))
                 {
@@ -100,12 +112,12 @@ namespace SimpleGOAP
 
             if (current != null)
             {
-                return ReconstructPath(current, @params.StartingState, iterations, false);
+                return ReconstructPath(current, @params.StartingState, iterations, -1);
             }
 
             return new Plan<T>
             {
-                Success = false,
+                GoalIndex = -1,
                 Steps = new List<PlanStep<T>>(),
                 Iterations = iterations
             };
@@ -118,7 +130,7 @@ namespace SimpleGOAP
             return new SimplePriorityQueue<StateNode<T>>();
         }
 
-        private static Plan<T> ReconstructPath(StateNode<T> final, T startingState, int iterations, bool success=true)
+        private static Plan<T> ReconstructPath(StateNode<T> final, T startingState, int iterations, int goalIndex)
         {
             var current = final;
             var path = new List<StateNode<T>>();
@@ -131,7 +143,7 @@ namespace SimpleGOAP
             path.Reverse();
             return new Plan<T>
             {
-                Success = success,
+                GoalIndex = goalIndex,
                 Steps = path.Select((step, i) => new PlanStep<T>
                 {
                     Index = i,

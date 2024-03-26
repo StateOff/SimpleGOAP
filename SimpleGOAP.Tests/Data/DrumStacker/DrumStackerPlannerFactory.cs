@@ -118,7 +118,7 @@ namespace SimpleGOAP.Tests.Data.DrumStacker
             {
                 StartingState = initialState,
                 HeuristicCost = HeuristicCost,
-                GoalEvaluator = state => HeuristicCost(state) == 0,
+                GoalsEvaluator = new () { state => HeuristicCost(state) == 0 },
                 GetActions = GetActions
             };
 

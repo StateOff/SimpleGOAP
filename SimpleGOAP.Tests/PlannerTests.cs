@@ -203,7 +203,7 @@ namespace SimpleGOAP.Tests
             var plan = subject.Execute(new PlanParameters<KeyValueState<string, object>>
             {
                 GetActions = _ => Array.Empty<IAction<KeyValueState<string, object>>>(),
-                GoalEvaluator = g => false,
+                GoalsEvaluator = new () { g => false },
                 HeuristicCost = g => 0,
                 StartingState = new KeyValueState<string, object>()
             });
