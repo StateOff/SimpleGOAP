@@ -2,8 +2,6 @@ using System;
 using System.Linq;
 using asgae.Ai;
 using asgae.Ai.Actions;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using SimpleGOAP.KeyValueState;
 using SimpleGOAP.Tests.Data.DrumStacker;
 using SimpleGOAP.Tests.Data.ReadmeExample;
@@ -57,38 +55,12 @@ namespace SimpleGOAP.Tests
             // Assert.True(plan.Success);
         }
 
-        public class TestOutputLogger<T> : ILogger<T>
-        {
-            private readonly ITestOutputHelper testOutputHelper;
-
-            public TestOutputLogger(ITestOutputHelper testOutputHelper)
-            {
-                this.testOutputHelper = testOutputHelper;
-            }
-
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-            {
-                if (!IsEnabled(logLevel))
-                {
-                    return;
-                }
-                testOutputHelper.WriteLine(formatter(state, exception));
-            }
-
-            public bool IsEnabled(LogLevel logLevel)
-            {
-                return false;
-            }
-
-            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default;
-        }
         
         [Fact]
         public void TestEnemyAi()
         {
             var name = "Igor";
-            var logger = new TestOutputLogger<EnemyAiFactory.OwnerKeyValuePlanner>(testOutputHelper);
-            var (data, subject) = EnemyAiFactory.Create(name, logger);
+            var (data, subject) = EnemyAiFactory.Create(name);
 
             testOutputHelper.WriteLine($"Initial State:\n{data.StartingState}");
             var state = data.StartingState;
@@ -198,7 +170,7 @@ namespace SimpleGOAP.Tests
         [Fact]
         public void TestKeyValuePlannerFailsWhenNoActions()
         {
-            var subject = new KeyValuePlanner();
+            KeyValuePlanner subject = new KeyValuePlanner();
 
             var plan = subject.Execute(new PlanParameters<KeyValueState<string, object>>
             {

@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using SimpleGOAP;
 
 namespace SimpleGOAP.KeyValueState
 {
     public class KeyValuePlanner : Planner<KeyValueState<string, object>>
     {
-        public KeyValuePlanner(ILogger<KeyValuePlanner> logger=null) : base(new KeyValueStateCopier<string, object>(), new KeyValueStateComparer<string, object>(), logger)
+        public KeyValuePlanner() : base(new KeyValueStateCopier<string, object>(), new KeyValueStateComparer<string, object>())
         {
         }
     }

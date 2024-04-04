@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
 
 namespace SimpleGOAP.Tests.Data.RiverCrossing
 {
     public static class RiverCrossingPlannerFactory
     {
-        public static (PlanParameters<RiverCrossingState>, Planner<RiverCrossingState>) Create(ILogger<Planner<RiverCrossingState>> logger=null)
+        public static (PlanParameters<RiverCrossingState>, Planner<RiverCrossingState>) Create()
         {
             int HeuristicCost(RiverCrossingState state1)
             {
@@ -133,8 +131,7 @@ namespace SimpleGOAP.Tests.Data.RiverCrossing
                     Wolf = state.Wolf,
                     Farmer = state.Farmer
                 }),
-                new RiverCrossingStateComparer(),
-                logger
+                new RiverCrossingStateComparer()
             );
 
             return (data, planner);

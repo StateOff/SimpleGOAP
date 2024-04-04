@@ -1,6 +1,4 @@
-using System.Data.SqlTypes;
 using System.Text;
-using asgae.Ai.Actions;
 using SimpleGOAP.KeyValueState;
 
 namespace asgae.Ai;

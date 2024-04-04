@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Logging;
 using SimpleGOAP.KeyValueState;
 using SimpleGOAP.Tests.Data.Traveler.Actions;
 
@@ -8,7 +7,7 @@ namespace SimpleGOAP.Tests.Data.Traveler
 {
     public static class TravelerDataFactory
     {
-        public static (PlanParameters<KeyValueState<string, object>>, Planner<KeyValueState<string, object>>) Create(ILogger<KeyValuePlanner> logger=null)
+        public static (PlanParameters<KeyValueState<string, object>>, Planner<KeyValueState<string, object>>) Create()
         {
             const int COST_OF_TOY = 10;
             const int SELL_VALUE_OF_TOY = 30;
@@ -111,7 +110,7 @@ namespace SimpleGOAP.Tests.Data.Traveler
                 GoalsEvaluator = new () { s => HeuristicCost(s) <= 0 },
             };
 
-            return (args, new KeyValuePlanner(logger));
+            return (args, new KeyValuePlanner());
         }
     }
 }

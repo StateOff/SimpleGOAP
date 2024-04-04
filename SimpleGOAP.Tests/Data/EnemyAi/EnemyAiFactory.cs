@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using asgae.Ai.Actions;
-using Microsoft.Extensions.Logging;
 using SimpleGOAP;
 using SimpleGOAP.KeyValueState;
-using SimpleGOAP.Tests.Data.Traveler.Actions;
 
 namespace asgae.Ai
 {
@@ -25,7 +23,7 @@ namespace asgae.Ai
         
         public class OwnerKeyValuePlanner : Planner<OwnerKeyValueState>
         {
-            public OwnerKeyValuePlanner(ILogger<OwnerKeyValuePlanner> logger) : base(new OwnerKeyValueStateCopier(), new KeyValueStateComparer<string, object>(), logger)
+            public OwnerKeyValuePlanner() : base(new OwnerKeyValueStateCopier(), new KeyValueStateComparer<string, object>())
             {
             }
         }
@@ -89,7 +87,7 @@ namespace asgae.Ai
         public const string KeyFood = "food";
         public const string Location = "location";
         
-        public static (PlanParameters<OwnerKeyValueState>, OwnerKeyValuePlanner) Create(string name, ILogger<OwnerKeyValuePlanner> logger)
+        public static (PlanParameters<OwnerKeyValueState>, OwnerKeyValuePlanner) Create(string name)
         {
             const float BOREDOM_RATE_PER_HOUR = 0.1f;
             const float BOREDOM_RATE_PER_HOUR_THREATENED = 0.0f;
@@ -213,7 +211,7 @@ namespace asgae.Ai
                 GoalsEvaluator = new() { OkGoal },
             };
 
-            return (args, new OwnerKeyValuePlanner(logger));
+            return (args, new OwnerKeyValuePlanner());
         }
     }
 }

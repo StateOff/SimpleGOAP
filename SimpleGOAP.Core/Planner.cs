@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Priority_Queue;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SimpleGOAP
 {
@@ -13,15 +11,10 @@ namespace SimpleGOAP
     {
         private readonly IStateCopier<T> stateCopier;
         private readonly IEqualityComparer<T> stateComparer;
-        private readonly ILogger<Planner<T>> logger;
+        private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public Planner(IStateCopier<T> stateCopier, IEqualityComparer<T> stateComparer, ILogger<Planner<T>> logger=null)
+        public Planner(IStateCopier<T> stateCopier, IEqualityComparer<T> stateComparer)
         {
-            if (logger == null)
-            {
-                logger = new NullLogger<Planner<T>>();
-            }
-            this.logger = logger;
             this.stateCopier = stateCopier;
             this.stateComparer = stateComparer;
         }
@@ -57,18 +50,23 @@ namespace SimpleGOAP
                 [start.ResultingState] = 0
             };
 
+            var startTime = DateTime.Now;
             var iterations = 0;
             StateNode<T> current = null;
             while (openSet.Any() && ++iterations < @params.MaxIterations)
             {
+                var currentTime = DateTime.Now;
+                var duration = currentTime - startTime;
+                startTime = currentTime;
+                
                 current = openSet.Dequeue();
                 var sourceActionTitle = "(root)";
                 if (current.SourceAction != null)
                 {
                     sourceActionTitle = current.SourceAction.Title;
                 }
-                logger.LogTrace($">>> Iteration {iterations} with {openSet.Count+1} in Set after {sourceActionTitle}");
-                logger.LogDebug($"{current.ResultingState.ToString()}");
+                logger.Trace($">>> Iteration {iterations} with {openSet.Count+1} in Set after {sourceActionTitle} ({duration.TotalMilliseconds} ms)");
+                logger.Debug($"{current.ResultingState.ToString()}");
 
                 int goalIndex = 0;
                 foreach(var evalGoal in evalGoals) {
@@ -81,11 +79,11 @@ namespace SimpleGOAP
 
                 foreach (var neighbor in GetNeighbors(current, @params.GetActions(current.ResultingState)))
                 {
-                    logger.LogTrace($"[???] Testing Action {neighbor.SourceAction.Title}");
+                    logger.Trace($"[???] Testing Action {neighbor.SourceAction.Title}");
                     var distScore = distanceScores[current.ResultingState] + neighbor.GetActionCost(current.ResultingState);
                     if (distScore >= distanceScores[neighbor.ResultingState])
                     {
-                        logger.LogDebug($"[...] Skipping due to action cost: {neighbor.SourceAction.Title}");
+                        logger.Debug($"[...] Skipping due to action cost: {neighbor.SourceAction.Title}");
                         continue;
                     }
 
@@ -93,19 +91,19 @@ namespace SimpleGOAP
                     var hCost = heuristicCost(neighbor.ResultingState);
                     if (hCost > maxHScore)
                     {
-                        logger.LogDebug($"[...] Skipping due to heuristic cost: {neighbor.SourceAction.Title}");
+                        logger.Debug($"[...] Skipping due to heuristic cost: {neighbor.SourceAction.Title}");
                         continue;
                     }
 
                     if (!openSet.Contains(neighbor))
                     {
                         var finalScore = distScore + hCost;
-                        logger.LogDebug($"[+++] Enqueuing action '{neighbor.SourceAction.Title}' with finalScore {finalScore} ({distScore} + {hCost})");
+                        logger.Debug($"[+++] Enqueuing action '{neighbor.SourceAction.Title}' with finalScore {finalScore} ({distScore} + {hCost})");
                         openSet.Enqueue(neighbor, finalScore);
                     }
                     else
                     {
-                        logger.LogDebug($"[...] Skipping due to duplicate");
+                        logger.Debug($"[...] Skipping due to duplicate");
                     }
                 }
             }

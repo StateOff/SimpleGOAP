@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
 
 namespace SimpleGOAP.Tests.Data.ReadmeExample
 {
     public static class PotatoStatePlannerFactory
     {
-        public static (PlanParameters<PotatoState>, Planner<PotatoState>) Create(ILogger<Planner<PotatoState>> logger=null)
+        public static (PlanParameters<PotatoState>, Planner<PotatoState>) Create()
         {
             var planner = new Planner<PotatoState>(
                 new PotatoStateCopier(),
-                new PotatoStateEqualityComparer(),
-                logger
+                new PotatoStateEqualityComparer()
             );
 
             Func<PotatoState, bool> goalEvaluator = state => state.BakedPotatoes >= 5;
