@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Priority_Queue;
 
 namespace SimpleGOAP
@@ -17,6 +19,112 @@ namespace SimpleGOAP
         {
             this.stateCopier = stateCopier;
             this.stateComparer = stateComparer;
+        }
+        
+        
+        /// <summary>Execute the plan.</summary>
+        public async Task<Plan<T>> ExecuteAsync(PlanParameters<T> @params, CancellationToken? cancellationToken=null)
+        {
+            if (@params.GoalsEvaluator == null)
+                throw new ArgumentOutOfRangeException(nameof(@params.GoalsEvaluator));
+            if (@params.HeuristicCost == null)
+                throw new ArgumentOutOfRangeException(nameof(@params.HeuristicCost));
+            if (@params.GetActions == null)
+                throw new ArgumentOutOfRangeException(nameof(@params.GetActions));
+            if (@params.StartingState == null)
+                throw new ArgumentOutOfRangeException(nameof(@params.StartingState));
+
+            /*
+             * AStar:
+             *  g score: current distance from the start measured by sum of action costs
+             *  h score: heuristic of how close the node's state is to goal state, supplied by caller
+             *  f score: sum of (g, h), used as priority of the node
+             */
+            var heuristicCost = @params.HeuristicCost;
+            var evalGoals = @params.GoalsEvaluator;
+            var maxHScore = @params.MaxHeuristicCost;
+
+            var start = new StateNode<T>(@params.StartingState, null, null);
+            var openSet = CreateQueue(@params);
+            openSet.Enqueue(start, 0);
+
+            var distanceScores = new DefaultDictionary<T, int>(int.MaxValue, stateComparer)
+            {
+                [start.ResultingState] = 0
+            };
+
+            var startTime = DateTime.Now;
+            var iterations = 0;
+            StateNode<T> current = null;
+            while (openSet.Any() && ++iterations < @params.MaxIterations)
+            {
+                var currentTime = DateTime.Now;
+                var duration = currentTime - startTime;
+                startTime = currentTime;
+                
+                current = openSet.Dequeue();
+                var sourceActionTitle = "(root)";
+                if (current.SourceAction != null)
+                {
+                    sourceActionTitle = current.SourceAction.Title;
+                }
+                logger.Debug($" >>> Iteration {iterations} with {openSet.Count+1} in Set after {sourceActionTitle} ({duration.TotalMilliseconds} ms)");
+                logger.Trace($"Iteration State:\n{current.ResultingState.ToString()}");
+
+                int goalIndex = 0;
+                foreach(var evalGoal in evalGoals) {
+                    if (evalGoal(current.ResultingState))
+                    {
+                        return ReconstructPath(current, @params.StartingState, iterations, goalIndex);
+                    }
+                    goalIndex++;
+                }
+
+                foreach (var neighbor in GetNeighbors(current, @params.GetActions(current.ResultingState, false)))
+                {
+                    logger.Trace($"[???] Testing Action {neighbor.SourceAction.Title}");
+                    var distScore = distanceScores[current.ResultingState] + neighbor.GetActionCost(current.ResultingState);
+                    if (distScore >= distanceScores[neighbor.ResultingState])
+                    {
+                        logger.Debug($"[...] Skipping due to action cost: {neighbor.SourceAction.Title}");
+                        continue;
+                    }
+
+                    distanceScores[neighbor.ResultingState] = distScore;
+                    var hCost = heuristicCost(neighbor.ResultingState);
+                    if (hCost > maxHScore)
+                    {
+                        logger.Debug($"[...] Skipping due to heuristic cost: {neighbor.SourceAction.Title}");
+                        continue;
+                    }
+
+                    if (!openSet.Contains(neighbor))
+                    {
+                        var finalScore = distScore + hCost;
+                        logger.Debug($"[+++] Enqueuing action '{neighbor.SourceAction.Title}' with finalScore {finalScore} ({distScore} + {hCost})");
+                        openSet.Enqueue(neighbor, finalScore);
+                    }
+                    else
+                    {
+                        logger.Debug($"[...] Skipping due to duplicate");
+                    }
+                }
+
+                if(cancellationToken != null) cancellationToken.Value.ThrowIfCancellationRequested();
+                await Task.Yield();
+            }
+
+            if (current != null)
+            {
+                return ReconstructPath(current, @params.StartingState, iterations, -1);
+            }
+
+            return new Plan<T>
+            {
+                GoalIndex = -1,
+                Steps = new List<PlanStep<T>>(),
+                Iterations = iterations
+            };
         }
 
         /// <summary>Execute the plan.</summary>
@@ -65,8 +173,8 @@ namespace SimpleGOAP
                 {
                     sourceActionTitle = current.SourceAction.Title;
                 }
-                logger.Trace($">>> Iteration {iterations} with {openSet.Count+1} in Set after {sourceActionTitle} ({duration.TotalMilliseconds} ms)");
-                logger.Debug($"{current.ResultingState.ToString()}");
+                logger.Debug($" >>> Iteration {iterations} with {openSet.Count+1} in Set after {sourceActionTitle} ({duration.TotalMilliseconds} ms)");
+                logger.Trace($"Iteration State:\n{current.ResultingState.ToString()}");
 
                 int goalIndex = 0;
                 foreach(var evalGoal in evalGoals) {
@@ -77,7 +185,7 @@ namespace SimpleGOAP
                     goalIndex++;
                 }
 
-                foreach (var neighbor in GetNeighbors(current, @params.GetActions(current.ResultingState)))
+                foreach (var neighbor in GetNeighbors(current, @params.GetActions(current.ResultingState, false)))
                 {
                     logger.Trace($"[???] Testing Action {neighbor.SourceAction.Title}");
                     var distScore = distanceScores[current.ResultingState] + neighbor.GetActionCost(current.ResultingState);
@@ -160,7 +268,9 @@ namespace SimpleGOAP
 
             foreach (var action in actions)
             {
-                var newState = action.TakeActionOnState(stateCopier.Copy(currentState));
+                // In case currentState is not a reference type, the return has to be taken
+                // instead of assuming that the copy is being mutated.
+                var newState = action.TakeActionOnState(stateCopier.Copy(currentState), true);
 
                 // sometimes actions have no effect on state, in which case we don't want to entertain them as nodes
                 // assuming that additional actions to get to the same state is always worse

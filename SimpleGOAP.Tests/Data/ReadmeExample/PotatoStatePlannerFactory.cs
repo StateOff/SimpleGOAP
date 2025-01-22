@@ -35,15 +35,15 @@ namespace SimpleGOAP.Tests.Data.ReadmeExample
             var chopWood = new LambdaAction<PotatoState>("Chop wood", 1,
                 state => state.Wood++);
 
-            IEnumerable<IAction<PotatoState>> GetActions(PotatoState state)
+            IEnumerable<IAction<PotatoState>> GetActions(PotatoState state, bool ignorePreconditions)
             {
                 yield return harvestPotato;
                 yield return chopWood;
 
-                if (state.Wood >= 3)
+                if (ignorePreconditions || state.Wood >= 3)
                     yield return makeFire;
 
-                if (state.Fire && state.RawPotatoes > 0)
+                if (ignorePreconditions || (state.Fire && state.RawPotatoes > 0))
                     yield return cookPotato;
             }
 

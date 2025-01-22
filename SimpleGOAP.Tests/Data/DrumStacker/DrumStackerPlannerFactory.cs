@@ -29,7 +29,7 @@ namespace SimpleGOAP.Tests.Data.DrumStacker
                 return count * 300;
             }
 
-            IEnumerable<IAction<DrumStackerState>> GetActions(DrumStackerState state)
+            IEnumerable<IAction<DrumStackerState>> GetActions(DrumStackerState state, bool ignorePreconditions)
             {
                 for (var i = 0; i < state.Stacks.Count; i++)
                 {

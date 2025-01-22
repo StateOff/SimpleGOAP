@@ -22,7 +22,7 @@ namespace SimpleGOAP.Tests.Data.Traveler.Actions
             return state.Get<int>(itemName) > 0 && state.Check("myLocation", "Home");
         }
 
-        public KeyValueState<string, object> TakeActionOnState(KeyValueState<string, object> state)
+        public KeyValueState<string, object> TakeActionOnState(KeyValueState<string, object> state, bool isPlanning)
         {
             state.Set<int>(itemName, f => f - 1);
             state.Set<int>("money", m => m + amountPerItem);

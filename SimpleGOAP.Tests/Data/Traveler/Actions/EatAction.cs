@@ -12,7 +12,7 @@ namespace SimpleGOAP.Tests.Data.Traveler.Actions
             return state.Check("myLocation", "Restaurant") && state.Get<int>("food") > 0;
         }
 
-        public KeyValueState<string, object> TakeActionOnState(KeyValueState<string, object> state)
+        public KeyValueState<string, object> TakeActionOnState(KeyValueState<string, object> state, bool isPlanning)
         {
             state.Set("food", state.Get<int>("food") - 1);
             state.Set("full", true);

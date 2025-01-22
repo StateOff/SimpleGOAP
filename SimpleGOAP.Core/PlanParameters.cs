@@ -20,7 +20,7 @@ namespace SimpleGOAP
         public List<Func<T, bool>> GoalsEvaluator { get; set; }
 
         /// <summary> A list of actions that can be taken to achieve the goal.</summary>
-        public Func<T, IEnumerable<IAction<T>>> GetActions { get; set; }
+        public Func<T, bool, IEnumerable<IAction<T>>> GetActions { get; set; }
 
         /// <summary>The maximum number of possible actions to check before exiting.</summary>
         public int MaxIterations { get; set; } = int.MaxValue;

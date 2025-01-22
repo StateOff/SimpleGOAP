@@ -22,6 +22,6 @@
         /// the state within this function, since that has already been done upstream. So, for reference types
         /// you may just edit them and return the same object. This requires a return type of <c>T</c> in case
         /// your state object is not passed by reference (e.g. a struct).</summary>
-        T TakeActionOnState(T state);
+        T TakeActionOnState(T state, bool isPlanning);
     }
 }

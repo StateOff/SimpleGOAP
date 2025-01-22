@@ -91,7 +91,7 @@ namespace SimpleGOAP.Tests.Data.RiverCrossing
                 MaxHeuristicCost = 50,
                 HeuristicCost = HeuristicCost,
                 GoalsEvaluator = new () {state => HeuristicCost(state) == 0},
-                GetActions = s =>
+                GetActions = (s, ignorePreconditions) =>
                 {
                     var actions = new List<IAction<RiverCrossingState>>();
 

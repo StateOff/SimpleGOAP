@@ -17,6 +17,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\asgae.ai\asgae.ai.csproj" />
+      <ProjectReference Include="..\..\asgae\scripts\ai\asgae.ai.csproj" />
       <ProjectReference Include="..\SimpleGOAP.Core\SimpleGOAP.Core.csproj" />
       <ProjectReference Include="..\SimpleGOAP.KeyValueState\SimpleGOAP.KeyValueState.csproj" />
     </ItemGroup>

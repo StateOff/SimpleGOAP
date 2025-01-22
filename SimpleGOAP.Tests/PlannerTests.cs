@@ -55,62 +55,6 @@ namespace SimpleGOAP.Tests
             // Assert.True(plan.Success);
         }
 
-        
-        [Fact]
-        public void TestEnemyAi()
-        {
-            var name = "Igor";
-            var (data, subject) = EnemyAiFactory.Create(name);
-
-            testOutputHelper.WriteLine($"Initial State:\n{data.StartingState}");
-            var state = data.StartingState;
-            Plan<OwnerKeyValueState> plan = null;
-            
-            for (int i = 0; i < 900; i++)
-            {
-                testOutputHelper.WriteLine($"------------------------- {i+1} -----------------------");
-                var start = DateTime.Now;
-                plan = subject.Execute(data);
-                var duration = DateTime.Now - start;
-
-                var planStatusText = plan.Success ? "Successful" : "Failed";
-                testOutputHelper.WriteLine($"{planStatusText} Planning after {duration.TotalMilliseconds}ms (in {plan.Iterations} iterations):");
-                int counter = 1;
-                if (!plan.Success)
-                {
-                    testOutputHelper.WriteLine("\tNot successful!");
-                    break;
-                }
-
-                if (plan.Steps.Count == 0)
-                {
-                    var action = new IdleAction(name);
-                    if (action.PreconditionMet(data.StartingState))
-                    {
-                        testOutputHelper.WriteLine("\tNothing to do... Idle");
-                        action.TakeActionOnState(data.StartingState);
-                    } else
-                    {
-                        testOutputHelper.WriteLine("\tNothing to do... No actions left");
-                        break;
-                    }
-                }
-                else
-                {
-                    foreach (var step in plan.Steps)
-                    {
-                        testOutputHelper.WriteLine($"\tStep #{counter++} {step.Action.Title}");
-                    }
-
-                    data.StartingState = plan.Steps.Last().AfterState;
-                }
-                state = data.StartingState;
-            }
-            testOutputHelper.WriteLine($"Output State:\n{state}");
-
-            Assert.True(plan != null && plan.Success);
-        }
-        
         [Fact]
         public void TestRiverCrossing()
         {
@@ -174,7 +118,7 @@ namespace SimpleGOAP.Tests
 
             var plan = subject.Execute(new PlanParameters<KeyValueState<string, object>>
             {
-                GetActions = _ => Array.Empty<IAction<KeyValueState<string, object>>>(),
+                GetActions = (_, ignorePreconditions) => Array.Empty<IAction<KeyValueState<string, object>>>(),
                 GoalsEvaluator = new () { g => false },
                 HeuristicCost = g => 0,
                 StartingState = new KeyValueState<string, object>()

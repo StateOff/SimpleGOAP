@@ -4,11 +4,11 @@ namespace SimpleGOAP
 {
     public class LambdaAction<T> : IAction<T>
     {
-        private Func<T, T> action;
+        private Func<T, bool, T> action;
         private Func<T, bool> precondition;
         private readonly Func<int> getCost;
 
-        public LambdaAction(string title, int actionCost, Func<T, T> action, Func<T, bool> precondition=null)
+        public LambdaAction(string title, int actionCost, Func<T, bool, T> action, Func<T, bool> precondition=null)
         {
             Title = title;
             getCost = () => actionCost;
@@ -20,7 +20,7 @@ namespace SimpleGOAP
         {
             Title = title;
             getCost = () => actionCost;
-            this.action = state =>
+            this.action = (state, isPlanning) =>
             {
                 action(state);
                 return state;
@@ -28,7 +28,7 @@ namespace SimpleGOAP
             this.precondition = precondition;
         }
 
-        public LambdaAction(string title, Func<int> getCost, Func<T, T> action, Func<T, bool> precondition=null)
+        public LambdaAction(string title, Func<int> getCost, Func<T, bool, T> action, Func<T, bool> precondition=null)
         {
             Title = title;
             this.getCost = getCost;
@@ -40,7 +40,7 @@ namespace SimpleGOAP
         {
             Title = title;
             this.getCost = getCost;
-            this.action = state =>
+            this.action = (state, isPlanning) =>
             {
                 action(state);
                 return state;
@@ -48,7 +48,7 @@ namespace SimpleGOAP
             this.precondition = precondition;
         }
 
-        public LambdaAction(string title, Func<T, T> action, Func<T, bool> precondition=null)
+        public LambdaAction(string title, Func<T, bool, T> action, Func<T, bool> precondition=null)
         {
             Title = title;
             getCost = () => 1;
@@ -60,7 +60,7 @@ namespace SimpleGOAP
         {
             Title = title;
             getCost = () => 1;
-            this.action = state =>
+            this.action = (state, isPlanning) =>
             {
                 action(state);
                 return state;
@@ -82,6 +82,6 @@ namespace SimpleGOAP
             return precondition == null || precondition(state);
         }
 
-        public T TakeActionOnState(T state) => action(state);
+        public T TakeActionOnState(T state, bool isPlanning) => action(state, isPlanning);
     }
 }

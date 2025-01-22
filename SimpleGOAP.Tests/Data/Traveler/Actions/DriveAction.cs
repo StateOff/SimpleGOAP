@@ -34,7 +34,7 @@ namespace SimpleGOAP.Tests.Data.Traveler.Actions
             return Convert.ToInt32(distance * GasPerDistance);
         }
 
-        public KeyValueState<string, object> TakeActionOnState(KeyValueState<string, object> state)
+        public KeyValueState<string, object> TakeActionOnState(KeyValueState<string, object> state, bool isPlanning)
         {
             var gasCost = GasSpentForDistance(state);
             state.Set("gas", state.Get<int>("gas") - gasCost);

@@ -38,58 +38,58 @@ namespace SimpleGOAP.Tests.Data.Traveler
                 ("Theater", 2, 0),
             };
             
-            IEnumerable<IAction<KeyValueState<string, object>>> GetActions(KeyValueState<string, object> state)
+            IEnumerable<IAction<KeyValueState<string, object>>> GetActions(KeyValueState<string, object> state, bool ignorePreconditions=false)
             {
                 var restaurantDriveAction = new DriveAction("Restaurant", locations);
-                if(restaurantDriveAction.PreconditionMet(state))
+                if(ignorePreconditions || restaurantDriveAction.PreconditionMet(state))
                     yield return restaurantDriveAction;
 
                 var workDriveAction = new DriveAction("Work", locations);
-                if(workDriveAction.PreconditionMet(state))
+                if(ignorePreconditions || workDriveAction.PreconditionMet(state))
                     yield return workDriveAction;
 
                 var homeDriveAction = new DriveAction("Home", locations);
-                if(homeDriveAction.PreconditionMet(state))
+                if(ignorePreconditions || homeDriveAction.PreconditionMet(state))
                     yield return homeDriveAction;
                 
                 var gasStationDriveAction =  new DriveAction("Gas Station", locations);
-                if(gasStationDriveAction.PreconditionMet(state))
+                if(ignorePreconditions || gasStationDriveAction.PreconditionMet(state))
                     yield return gasStationDriveAction;
                 
                 var theaterDriveAction = new DriveAction("Theater", locations);
-                if(theaterDriveAction.PreconditionMet(state))
+                if(ignorePreconditions || theaterDriveAction.PreconditionMet(state))
                     yield return theaterDriveAction;
                 
                 var purchaseGasAction = new PurchaseAction("gas", "Gas Station", COST_OF_GAS, GAS_TANK_CAPACITY, GAS_TANK_CAPACITY);
-                if(purchaseGasAction.PreconditionMet(state))
+                if(ignorePreconditions || purchaseGasAction.PreconditionMet(state))
                     yield return purchaseGasAction;
                 
                 var purchaseToyAction = new PurchaseAction("toy", "Gas Station", COST_OF_TOY, 3, 6);
-                if(purchaseToyAction.PreconditionMet(state))
+                if(ignorePreconditions || purchaseToyAction.PreconditionMet(state))
                     yield return purchaseToyAction;
 
                 var purchaseFoodAction = new PurchaseAction("food", "Restaurant", COST_OF_FOOD, 1);
-                if(purchaseFoodAction.PreconditionMet(state))
+                if(ignorePreconditions || purchaseFoodAction.PreconditionMet(state))
                     yield return purchaseFoodAction;
 
                 var sellToyAction = new SellAction("toy", SELL_VALUE_OF_TOY);
-                if(sellToyAction.PreconditionMet(state))
+                if(ignorePreconditions || sellToyAction.PreconditionMet(state))
                     yield return sellToyAction;
 
                 var workAction = new WorkAction("Work", WAGE);
-                if(workAction.PreconditionMet(state))
+                if(ignorePreconditions || workAction.PreconditionMet(state))
                     yield return workAction;
                 
                 var watchMovieAction = new WatchMovieAction();
-                if(watchMovieAction.PreconditionMet(state))
+                if(ignorePreconditions || watchMovieAction.PreconditionMet(state))
                     yield return watchMovieAction;
                 
                 var sleepAction = new SleepAction();
-                if(sleepAction.PreconditionMet(state))
+                if(ignorePreconditions || sleepAction.PreconditionMet(state))
                     yield return sleepAction;
                 
                 var eatAction = new EatAction();
-                if(eatAction.PreconditionMet(state))
+                if(ignorePreconditions || eatAction.PreconditionMet(state))
                     yield return eatAction;
             }
 
