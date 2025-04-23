@@ -11,9 +11,9 @@ namespace SimpleGOAP
     /// <typeparam name="T">The type representing state.</typeparam>
     public class Planner<T>
     {
+        private static readonly NLog.Logger LOG = NLog.LogManager.GetCurrentClassLogger();
         private readonly IStateCopier<T> stateCopier;
         private readonly IEqualityComparer<T> stateComparer;
-        private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         public Planner(IStateCopier<T> stateCopier, IEqualityComparer<T> stateComparer)
         {
@@ -68,8 +68,8 @@ namespace SimpleGOAP
                 {
                     sourceActionTitle = current.SourceAction.Title;
                 }
-                logger.Debug($" >>> Iteration {iterations} with {openSet.Count+1} in Set after {sourceActionTitle} ({duration.TotalMilliseconds} ms)");
-                logger.Trace($"Iteration State:\n{current.ResultingState.ToString()}");
+                LOG.Debug($" >>> Iteration {iterations} with {openSet.Count+1} in Set after {sourceActionTitle} ({duration.TotalMilliseconds} ms)");
+                LOG.Trace($"Iteration State:\n{current.ResultingState.ToString()}");
 
                 int goalIndex = 0;
                 foreach(var evalGoal in evalGoals) {
@@ -82,11 +82,11 @@ namespace SimpleGOAP
 
                 foreach (var neighbor in GetNeighbors(current, @params.GetActions(current.ResultingState, false)))
                 {
-                    logger.Trace($"[???] Testing Action {neighbor.SourceAction.Title}");
+                    LOG.Trace($"[???] Testing Action {neighbor.SourceAction.Title}");
                     var distScore = distanceScores[current.ResultingState] + neighbor.GetActionCost(current.ResultingState);
                     if (distScore >= distanceScores[neighbor.ResultingState])
                     {
-                        logger.Debug($"[...] Skipping due to action cost: {neighbor.SourceAction.Title}");
+                        LOG.Debug($"[...] Skipping due to action cost: {neighbor.SourceAction.Title}");
                         continue;
                     }
 
@@ -94,19 +94,19 @@ namespace SimpleGOAP
                     var hCost = heuristicCost(neighbor.ResultingState);
                     if (hCost > maxHScore)
                     {
-                        logger.Debug($"[...] Skipping due to heuristic cost: {neighbor.SourceAction.Title}");
+                        LOG.Debug($"[...] Skipping due to heuristic cost: {neighbor.SourceAction.Title}");
                         continue;
                     }
 
                     if (!openSet.Contains(neighbor))
                     {
                         var finalScore = distScore + hCost;
-                        logger.Debug($"[+++] Enqueuing action '{neighbor.SourceAction.Title}' with finalScore {finalScore} ({distScore} + {hCost})");
+                        LOG.Debug($"[+++] Enqueuing action '{neighbor.SourceAction.Title}' with finalScore {finalScore} ({distScore} + {hCost})");
                         openSet.Enqueue(neighbor, finalScore);
                     }
                     else
                     {
-                        logger.Debug($"[...] Skipping due to duplicate");
+                        LOG.Debug($"[...] Skipping due to duplicate");
                     }
                 }
 
@@ -173,8 +173,8 @@ namespace SimpleGOAP
                 {
                     sourceActionTitle = current.SourceAction.Title;
                 }
-                logger.Debug($" >>> Iteration {iterations} with {openSet.Count+1} in Set after {sourceActionTitle} ({duration.TotalMilliseconds} ms)");
-                logger.Trace($"Iteration State:\n{current.ResultingState.ToString()}");
+                LOG.Debug($" >>> Iteration {iterations} with {openSet.Count+1} in Set after {sourceActionTitle} ({duration.TotalMilliseconds} ms)");
+                LOG.Trace($"Iteration State:\n{current.ResultingState.ToString()}");
 
                 int goalIndex = 0;
                 foreach(var evalGoal in evalGoals) {
@@ -187,11 +187,11 @@ namespace SimpleGOAP
 
                 foreach (var neighbor in GetNeighbors(current, @params.GetActions(current.ResultingState, false)))
                 {
-                    logger.Trace($"[???] Testing Action {neighbor.SourceAction.Title}");
+                    LOG.Trace($"[???] Testing Action {neighbor.SourceAction.Title}");
                     var distScore = distanceScores[current.ResultingState] + neighbor.GetActionCost(current.ResultingState);
                     if (distScore >= distanceScores[neighbor.ResultingState])
                     {
-                        logger.Debug($"[...] Skipping due to action cost: {neighbor.SourceAction.Title}");
+                        LOG.Debug($"[...] Skipping due to action cost: {neighbor.SourceAction.Title}");
                         continue;
                     }
 
@@ -199,19 +199,19 @@ namespace SimpleGOAP
                     var hCost = heuristicCost(neighbor.ResultingState);
                     if (hCost > maxHScore)
                     {
-                        logger.Debug($"[...] Skipping due to heuristic cost: {neighbor.SourceAction.Title}");
+                        LOG.Debug($"[...] Skipping due to heuristic cost: {neighbor.SourceAction.Title}");
                         continue;
                     }
 
                     if (!openSet.Contains(neighbor))
                     {
                         var finalScore = distScore + hCost;
-                        logger.Debug($"[+++] Enqueuing action '{neighbor.SourceAction.Title}' with finalScore {finalScore} ({distScore} + {hCost})");
+                        LOG.Debug($"[+++] Enqueuing action '{neighbor.SourceAction.Title}' with finalScore {finalScore} ({distScore} + {hCost})");
                         openSet.Enqueue(neighbor, finalScore);
                     }
                     else
                     {
-                        logger.Debug($"[...] Skipping due to duplicate");
+                        LOG.Debug($"[...] Skipping due to duplicate");
                     }
                 }
             }

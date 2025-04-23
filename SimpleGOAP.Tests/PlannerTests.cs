@@ -1,7 +1,5 @@
 using System;
 using System.Linq;
-using asgae.Ai;
-using asgae.Ai.Actions;
 using SimpleGOAP.KeyValueState;
 using SimpleGOAP.Tests.Data.DrumStacker;
 using SimpleGOAP.Tests.Data.ReadmeExample;
